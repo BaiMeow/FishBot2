@@ -46,13 +46,11 @@ func main() {
 	}
 	c.Auth.UUID, c.Auth.Name = resp.SelectedProfile()
 	c.Auth.AsTk = resp.AccessToken()
-	vp.Debug()
 	vp.Set("profile.name", c.Auth.Name)
 	vp.Set("profile.uuid", c.Auth.UUID)
 	vp.Set("profile.astk", c.Auth.AsTk)
 	vp.Set("profile.account", vp.GetString("profile.account"))
 	vp.Set("profile.passwd", vp.GetString("profile.passwd"))
-	vp.Debug()
 	vp.WriteConfig()
 
 	c.Events.GameStart = onGameStart
