@@ -1,4 +1,4 @@
-module github.com/MscBaiMeow/FishbotReload
+module github.com/MscBaiMeow/Fishbot2
 
 go 1.14
 
