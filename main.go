@@ -2,16 +2,18 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"log"
-	"math"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/Tnze/go-mc/bot"
-	entity "github.com/Tnze/go-mc/bot/world/entity"
+	"github.com/Tnze/go-mc/bot/basic"
 	"github.com/Tnze/go-mc/chat"
-	"github.com/Tnze/go-mc/data"
-	entityData "github.com/Tnze/go-mc/data/entity"
+	"github.com/Tnze/go-mc/data/entity"
+	_ "github.com/Tnze/go-mc/data/lang/zh-cn"
+	"github.com/Tnze/go-mc/data/packetid"
 	pk "github.com/Tnze/go-mc/net/packet"
 	"github.com/Tnze/go-mc/yggdrasil"
 	"github.com/go-toast/toast"
@@ -22,10 +24,23 @@ import (
 
 var (
 	c        *bot.Client
+	player   *basic.Player
 	bobberID int32
 	watch    chan bool
 	vp       *viper.Viper
 )
+
+var updatebobber = bot.PacketHandler{
+	ID:       packetid.EntityMetadata,
+	Priority: 1,
+	F:        checkbobber,
+}
+
+var newentity = bot.PacketHandler{
+	ID:       packetid.SpawnEntity,
+	Priority: 1,
+	F:        newbobber,
+}
 
 func main() {
 	log.SetOutput(colorable.NewColorableStdout())
@@ -51,6 +66,7 @@ func main() {
 		}
 	}
 	c = bot.NewClient()
+	player = basic.NewPlayer(c, basic.DefaultSettings)
 	resp, err := yggdrasil.Authenticate(vp.GetString("profile.account"), vp.GetString("profile.passwd"))
 	if err != nil {
 		log.Fatal("Authenticate:", err)
@@ -64,16 +80,20 @@ func main() {
 	vp.Set("profile.passwd", vp.GetString("profile.passwd"))
 	vp.WriteConfig()
 
-	c.Events.GameStart = onGameStart
-	c.Events.GameReady = onGameReady
-	c.Events.Disconnect = onDisconnect
-	c.Events.ReceivePacket = onReceivePacket
-	c.Events.ChatMsg = onChatMsg
+	//注册事件
+	basic.EventsListener{
+		GameStart:  onGameStart,
+		ChatMsg:    onChatMsg,
+		Disconnect: onDisconnect,
+	}.Attach(c)
+	c.Events.AddListener(updatebobber, newentity)
 
+	addr := vp.GetString("setting.ip") + ":" + strconv.Itoa(vp.GetInt("setting.port"))
 	for {
-		if err := c.JoinServer(vp.GetString("setting.ip"), vp.GetInt("setting.port")); err != nil {
+		if err := c.JoinServer(addr); err != nil {
 			log.Fatal(err)
 		}
+		log.Println("1")
 		if err = c.HandleGame(); err != nil {
 			log.Println(err)
 		}
@@ -93,36 +113,8 @@ func onGameReady() error {
 	log.Println("Join game.")
 	watch = make(chan bool)
 	go watchdog()
-	go bobberSearcher()
 	go sendMsg()
 	return nil
-}
-
-func bobberSearcher() {
-	tick := time.Tick(time.Millisecond * 500)
-	for {
-		<-tick
-		if _, ok := c.Wd.Entities[bobberID]; ok {
-			continue
-		}
-		//log.Println("抛出鱼竿")
-		throw(1)
-		time.Sleep(time.Millisecond * 500)
-		for id, e := range c.Wd.Entities {
-			if e.Base == &entityData.FishingBobber && e.Data == c.Entity.ID {
-				bobberID = id
-				//log.Println("找到浮漂")
-			}
-		}
-		recover()
-	}
-}
-
-func distance(e *entity.Entity) float64 {
-	x0 := e.X - c.X
-	y0 := e.Y - c.Y
-	z0 := e.Z - c.Z
-	return math.Sqrt(x0*x0 + y0*y0 + z0*z0)
 }
 
 func onDisconnect(c chat.Message) error {
@@ -130,17 +122,11 @@ func onDisconnect(c chat.Message) error {
 	return nil
 }
 
-func onReceivePacket(p pk.Packet) (pass bool, err error) {
-	if data.PktID(p.ID) != data.EntityMetadata {
-		return false, nil
-	}
+func checkbobber(p pk.Packet) error {
 	var EID pk.VarInt
 	p.Scan(&EID)
-	if _, ok := c.Wd.Entities[int32(EID)]; !ok {
-		return true, nil
-	}
 	if int32(EID) != bobberID {
-		return true, nil
+		return nil
 	}
 	var (
 		hookedEID pk.VarInt
@@ -148,16 +134,39 @@ func onReceivePacket(p pk.Packet) (pass bool, err error) {
 	)
 	p.Scan(&hookedEID, &catchable)
 	if catchable {
-		throw(1)
+		throw(2)
 		watch <- true
 		log.Println("gra~")
+		return nil
 	}
-	return true, nil
+	return nil
+}
+func newbobber(p pk.Packet) error {
+	var (
+		EID     pk.VarInt
+		UUID    pk.UUID
+		mobType pk.VarInt
+	)
+	p.Scan(&EID, &UUID, &mobType)
+	//判断是否为浮漂
+	if mobType != pk.VarInt(entity.FishingBobber.ID) {
+		return nil
+	}
+	var (
+		x, y, z    pk.Double
+		pitch, yaw pk.Angle
+		data       pk.Int
+	)
+	p.Scan(&x, &y, &z, &pitch, &yaw, &data)
+	if data == pk.Int(player.EID) {
+		bobberID = int32(EID)
+	}
+	return nil
 }
 
 func throw(times int) {
 	for ; times > 0; times-- {
-		if err := c.UseItem(0); err != nil {
+		if err := useItem(); err != nil {
 			sendNotification("抛杆失败", 1)
 			log.Fatal("Fold bobber:", err)
 			return
@@ -193,11 +202,23 @@ func sendMsg() {
 	for {
 		Reader := bufio.NewReader(os.Stdin)
 		send, _, _ = Reader.ReadLine()
-		if err := c.Chat(string(send)); err != nil {
+		if err := msg(string(send)); err != nil {
 			log.Println(err)
 			sendNotification(err.Error(), 1)
 		}
 	}
+}
+func useItem() error {
+	return c.Conn.WritePacket(pk.Packet{ID: packetid.UseItem, Data: []byte{0}})
+}
+
+func msg(txt string) error {
+	msg := chat.Text(txt)
+	var data bytes.Buffer
+	if _, err := msg.WriteTo(&data); err != nil {
+		return err
+	}
+	return c.Conn.WritePacket(pk.Packet{ID: packetid.ChatServerbound, Data: data.Bytes()})
 }
 func sendNotification(content string, level int8) error {
 	notification := toast.Notification{
