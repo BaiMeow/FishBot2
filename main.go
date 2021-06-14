@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"log"
 	"os"
 	"strconv"
@@ -71,6 +70,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Authenticate:", err)
 	}
+	log.Println("验证成功")
 	c.Auth.UUID, c.Auth.Name = resp.SelectedProfile()
 	c.Auth.AsTk = resp.AccessToken()
 	vp.Set("profile.name", c.Auth.Name)
@@ -93,24 +93,18 @@ func main() {
 		if err := c.JoinServer(addr); err != nil {
 			log.Fatal(err)
 		}
-		log.Println("1")
 		if err = c.HandleGame(); err != nil {
 			log.Println(err)
 		}
 		sendNotification("失去与服务器的连接，将在五秒后重连", 0)
-		log.Println("Reconnect to server in 5s")
+		log.Println("失去与服务器的连接，将在五秒后重连")
 		time.Sleep(5 * time.Second)
 	}
 }
 
 func onGameStart() error {
-	log.Println("Game starts.")
-	return nil
-}
-
-func onGameReady() error {
 	sendNotification("成功进入游戏", 0)
-	log.Println("Join game.")
+	log.Println("加入游戏.")
 	watch = make(chan bool)
 	go watchdog()
 	go sendMsg()
@@ -118,7 +112,7 @@ func onGameReady() error {
 }
 
 func onDisconnect(c chat.Message) error {
-	log.Println("Disconnect:", c)
+	log.Println("断开连接:", c)
 	return nil
 }
 
@@ -152,6 +146,7 @@ func newbobber(p pk.Packet) error {
 	if mobType != pk.VarInt(entity.FishingBobber.ID) {
 		return nil
 	}
+	log.Println("找到新浮漂")
 	var (
 		x, y, z    pk.Double
 		pitch, yaw pk.Angle
@@ -168,7 +163,7 @@ func throw(times int) {
 	for ; times > 0; times-- {
 		if err := useItem(); err != nil {
 			sendNotification("抛杆失败", 1)
-			log.Fatal("Fold bobber:", err)
+			log.Fatal("抛竿:", err)
 			return
 		}
 		if times > 1 {
@@ -183,9 +178,9 @@ func watchdog() {
 	for {
 		select {
 		case <-timer.C:
-			log.Println("WatchDog:Time out.")
+			log.Println("WatchDog:超时")
 			sendNotification("等待超时，请检查钓鱼环境或修改超时时长", 1)
-			throw(2)
+			throw(1)
 		case <-watch:
 		}
 		timer.Reset(timeout)
@@ -202,7 +197,7 @@ func sendMsg() {
 	for {
 		Reader := bufio.NewReader(os.Stdin)
 		send, _, _ = Reader.ReadLine()
-		if err := msg(string(send)); err != nil {
+		if err := c.Conn.WritePacket(pk.Marshal(packetid.ChatServerbound, pk.String(send))); err != nil {
 			log.Println(err)
 			sendNotification(err.Error(), 1)
 		}
@@ -212,14 +207,6 @@ func useItem() error {
 	return c.Conn.WritePacket(pk.Packet{ID: packetid.UseItem, Data: []byte{0}})
 }
 
-func msg(txt string) error {
-	msg := chat.Text(txt)
-	var data bytes.Buffer
-	if _, err := msg.WriteTo(&data); err != nil {
-		return err
-	}
-	return c.Conn.WritePacket(pk.Packet{ID: packetid.ChatServerbound, Data: data.Bytes()})
-}
 func sendNotification(content string, level int8) error {
 	notification := toast.Notification{
 		AppID:   "MscFishBot",
