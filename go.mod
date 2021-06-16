@@ -1,4 +1,4 @@
-module github.com/MscBaiMeow/Fishbot2
+module github.com/MscBaiMeow/FishBot2
 
 go 1.16
 
@@ -10,3 +10,5 @@ require (
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/spf13/viper v1.7.1
 )
+
+replace github.com/Tnze/go-mc => D:\src\msc\go-mc

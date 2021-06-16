@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/MscBaiMeow/FishBot2/notice"
 	"github.com/Tnze/go-mc/bot"
 	"github.com/Tnze/go-mc/bot/basic"
 	"github.com/Tnze/go-mc/chat"
@@ -15,7 +16,6 @@ import (
 	"github.com/Tnze/go-mc/data/packetid"
 	pk "github.com/Tnze/go-mc/net/packet"
 	"github.com/Tnze/go-mc/yggdrasil"
-	"github.com/go-toast/toast"
 	"github.com/google/uuid"
 	"github.com/mattn/go-colorable"
 	"github.com/spf13/viper"
@@ -56,7 +56,7 @@ func main() {
 	if err := vp.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			vp.SafeWriteConfig()
-			if err := sendNotification("配置文件缺失，已创建默认配置文件，请打开\"config.toml\"修改并保存", 1); err != nil {
+			if err := notice.NewNotification("配置文件缺失，已创建默认配置文件，请打开\"config.toml\"修改并保存", notice.Warn).Push(); err != nil {
 				log.Println(err)
 			}
 			log.Fatal("配置文件缺失，已创建默认配置文件，请打开\"config.toml\"修改并保存")
@@ -96,18 +96,20 @@ func main() {
 		if err = c.HandleGame(); err != nil {
 			log.Println(err)
 		}
-		sendNotification("失去与服务器的连接，将在五秒后重连", 0)
+		notice.NewNotification("失去与服务器的连接，将在五秒后重连", notice.Info).Push()
 		log.Println("失去与服务器的连接，将在五秒后重连")
 		time.Sleep(5 * time.Second)
 	}
 }
 
 func onGameStart() error {
-	sendNotification("成功进入游戏", 0)
+	notice.NewNotification("成功进入游戏", notice.Info).Push()
 	log.Println("加入游戏.")
 	watch = make(chan bool)
 	go watchdog()
 	go sendMsg()
+	time.Sleep(3 * time.Second)
+	throw(1)
 	return nil
 }
 
@@ -137,22 +139,18 @@ func checkbobber(p pk.Packet) error {
 }
 func newbobber(p pk.Packet) error {
 	var (
-		EID     pk.VarInt
-		UUID    pk.UUID
-		mobType pk.VarInt
-	)
-	p.Scan(&EID, &UUID, &mobType)
-	//判断是否为浮漂
-	if mobType != pk.VarInt(entity.FishingBobber.ID) {
-		return nil
-	}
-	log.Println("找到新浮漂")
-	var (
+		EID        pk.VarInt
+		UUID       pk.UUID
+		mobType    pk.VarInt
 		x, y, z    pk.Double
 		pitch, yaw pk.Angle
 		data       pk.Int
 	)
-	p.Scan(&x, &y, &z, &pitch, &yaw, &data)
+	p.Scan(&EID, &UUID, &mobType, &x, &y, &z, &pitch, &yaw, &data)
+	//判断是否为浮漂
+	if mobType != pk.VarInt(entity.FishingBobber.ID) {
+		return nil
+	}
 	if data == pk.Int(player.EID) {
 		bobberID = int32(EID)
 	}
@@ -162,7 +160,7 @@ func newbobber(p pk.Packet) error {
 func throw(times int) {
 	for ; times > 0; times-- {
 		if err := useItem(); err != nil {
-			sendNotification("抛杆失败", 1)
+			notice.NewNotification("抛杆失败", notice.Warn).Push()
 			log.Fatal("抛竿:", err)
 			return
 		}
@@ -179,7 +177,7 @@ func watchdog() {
 		select {
 		case <-timer.C:
 			log.Println("WatchDog:超时")
-			sendNotification("等待超时，请检查钓鱼环境或修改超时时长", 1)
+			notice.NewNotification("等待超时，请检查钓鱼环境或修改超时时长", notice.Warn).Push()
 			throw(1)
 		case <-watch:
 		}
@@ -197,28 +195,16 @@ func sendMsg() {
 	for {
 		Reader := bufio.NewReader(os.Stdin)
 		send, _, _ = Reader.ReadLine()
+		if string(send) == "/throw" {
+			useItem()
+			continue
+		}
 		if err := c.Conn.WritePacket(pk.Marshal(packetid.ChatServerbound, pk.String(send))); err != nil {
 			log.Println(err)
-			sendNotification(err.Error(), 1)
+			notice.NewNotification(err.Error(), notice.Warn).Push()
 		}
 	}
 }
 func useItem() error {
 	return c.Conn.WritePacket(pk.Packet{ID: packetid.UseItem, Data: []byte{0}})
-}
-
-func sendNotification(content string, level int8) error {
-	notification := toast.Notification{
-		AppID:   "MscFishBot",
-		Message: content,
-	}
-	switch level {
-	case 0:
-		notification.Title = "Msc钓鱼机器人 普通消息"
-	case 1:
-		notification.Title = "Msc钓鱼机器人 警告"
-	default:
-		notification.Title = "Msc钓鱼机器人"
-	}
-	return notification.Push()
 }
