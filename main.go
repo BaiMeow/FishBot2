@@ -66,20 +66,23 @@ func main() {
 	}
 	c = bot.NewClient()
 	player = basic.NewPlayer(c, basic.DefaultSettings)
-	resp, err := yggdrasil.Authenticate(vp.GetString("profile.account"), vp.GetString("profile.passwd"))
-	if err != nil {
-		log.Fatal("Authenticate:", err)
+	if vp.GetString("profile.account") != "" {
+		resp, err := yggdrasil.Authenticate(vp.GetString("profile.account"), vp.GetString("profile.passwd"))
+		if err != nil {
+			log.Fatal("Authenticate:", err)
+		}
+		log.Println("验证成功")
+		c.Auth.UUID, c.Auth.Name = resp.SelectedProfile()
+		c.Auth.AsTk = resp.AccessToken()
+		vp.Set("profile.name", c.Auth.Name)
+		vp.Set("profile.uuid", c.Auth.UUID)
+		vp.Set("profile.astk", c.Auth.AsTk)
+		vp.Set("profile.account", vp.GetString("profile.account"))
+		vp.Set("profile.passwd", vp.GetString("profile.passwd"))
+		vp.WriteConfig()
+	} else {
+		c.Auth.Name = vp.GetString("profile.name")
 	}
-	log.Println("验证成功")
-	c.Auth.UUID, c.Auth.Name = resp.SelectedProfile()
-	c.Auth.AsTk = resp.AccessToken()
-	vp.Set("profile.name", c.Auth.Name)
-	vp.Set("profile.uuid", c.Auth.UUID)
-	vp.Set("profile.astk", c.Auth.AsTk)
-	vp.Set("profile.account", vp.GetString("profile.account"))
-	vp.Set("profile.passwd", vp.GetString("profile.passwd"))
-	vp.WriteConfig()
-
 	//注册事件
 	basic.EventsListener{
 		GameStart:  onGameStart,
@@ -93,7 +96,7 @@ func main() {
 		if err := c.JoinServer(addr); err != nil {
 			log.Fatal(err)
 		}
-		if err = c.HandleGame(); err != nil {
+		if err := c.HandleGame(); err != nil {
 			log.Println(err)
 		}
 		notice.NewNotification("失去与服务器的连接，将在五秒后重连", notice.Info).Push()
