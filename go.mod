@@ -10,3 +10,5 @@ require (
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/spf13/viper v1.7.1
 )
+
+replace github.com/Tnze/go-mc => github.com/miaoscraft/go-mc v1.16.2-0.20210619080243-7f0641a094a7
