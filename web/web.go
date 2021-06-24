@@ -1,6 +1,7 @@
 package web
 
 import (
+	_ "embed"
 	"sync"
 	"time"
 
@@ -26,15 +27,19 @@ var upgrader = ws.Upgrader{
 
 var data updateData
 
+//go:embed templates\index.html
+var index []byte
+
 func init() {
 	data.logs = make(chan log, 1024)
 }
 
 func WebRun(sendMsg func(string) error, log *logrus.Logger) {
 	r := gin.Default()
-	r.LoadHTMLGlob("web/templates/*")
 	r.GET("/", func(c *gin.Context) {
-		c.HTML(200, "index.html", nil)
+		if _, err := c.Writer.Write(index); err != nil {
+			log.Warn(err)
+		}
 	})
 	r.GET("/ws", func(c *gin.Context) {
 		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)

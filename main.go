@@ -108,7 +108,7 @@ func main() {
 }
 
 func onGameStart() error {
-	log.Info("加入游戏.")
+	log.Info("加入游戏")
 	watch = make(chan bool)
 	go watchdog()
 	go listenMsg()

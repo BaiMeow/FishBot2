@@ -56,7 +56,7 @@
     const app = Vue.createApp(Main);
     app.use(ElementPlus);
     v = app.mount('#app')
-    var ws = new WebSocket("ws://localhost:8080/ws")
+    var ws = new WebSocket("ws://"+location.host+"/ws")
     ws.onopen = function () {
       var d = new Date();
       v.logsData = [{
