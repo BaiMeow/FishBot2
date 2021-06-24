@@ -19,7 +19,6 @@ import (
 	pk "github.com/Tnze/go-mc/net/packet"
 	"github.com/Tnze/go-mc/yggdrasil"
 	"github.com/google/uuid"
-	"github.com/mattn/go-colorable"
 	"github.com/spf13/viper"
 )
 
@@ -47,7 +46,6 @@ var log *logrus.Logger
 
 func main() {
 	log = logrus.New()
-	log.SetOutput(colorable.NewColorableStdout())
 	hook.InitHook(log)
 	go web.WebRun(sendMsg, log)
 
@@ -190,7 +188,7 @@ func watchdog() {
 }
 
 func onChatMsg(msg chat.Message, pos byte, sender uuid.UUID) error {
-	log.Info("Chat:", msg.String())
+	log.Info(msg.ClearString())
 	return nil
 }
 

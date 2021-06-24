@@ -17,10 +17,18 @@
       <el-main>
         <el-tabs v-model="activeName">
           <el-tab-pane label="日志" name="logs">
-            <el-table :data="logsData">
+            <el-table :data="logsData" height=450px>
               <el-table-column label="时间" prop="time" width="100"></el-table-column>
               <el-table-column label="消息" prop="msg"></el-table-column>
             </el-table>
+            <el-row :gutter="20">
+              <el-col :span="22">
+                <el-input v-model="msgForm.msg" type="text"></el-input>
+              </el-col>
+              <el-col :span="2">
+                <el-button type="primary" v-on:click="onsubmit">发送</el-button>
+              </el-col>
+            </el-row>
           </el-tab-pane>
           <el-tab-pane label="设置" name="settings"></el-tab-pane>
         </el-tabs>
@@ -33,6 +41,15 @@
         return {
           activeName: 'logs',
           logsData: null,
+          msgForm: {
+            msg: ''
+          }
+        }
+      },
+      methods: {
+        onsubmit(event) {
+          ws.send(this.msgForm.msg)
+          this.msgForm.msg = ""
         }
       }
     }
@@ -49,18 +66,19 @@
     }
     ws.onmessage = function (event) {
       var rec = event.data
-      console.log(rec)
       v.logsData = v.logsData.concat(JSON.parse(rec))
     }
     ws.onclose = function (event) {
+      var d = new Date();
       v.logsData.push({
         time: d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds(),
         msg: "websocket连接断开"
       })
     }
-    ws.onerror = function(event)  {
+    ws.onerror = function (event) {
       console.log(event)
     }
   </script>
 </body>
+
 </html>
