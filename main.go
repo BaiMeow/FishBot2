@@ -212,6 +212,7 @@ func sendMsg(str string) error {
 		if err := useItem(); err != nil {
 			return err
 		}
+		return nil
 	}
 	if err := c.Conn.WritePacket(pk.Marshal(packetid.ChatServerbound, pk.String(str))); err != nil {
 		return err
