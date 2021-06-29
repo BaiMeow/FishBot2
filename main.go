@@ -137,7 +137,6 @@ func checkbobber(p pk.Packet) error {
 		throw(2)
 		watch <- true
 		log.Info("gra~")
-		return nil
 	}
 	return nil
 }
@@ -209,13 +208,7 @@ func useItem() error {
 
 func sendMsg(str string) error {
 	if str == "/throw" {
-		if err := useItem(); err != nil {
-			return err
-		}
-		return nil
+		return useItem()
 	}
-	if err := c.Conn.WritePacket(pk.Marshal(packetid.ChatServerbound, pk.String(str))); err != nil {
-		return err
-	}
-	return nil
+	return c.Conn.WritePacket(pk.Marshal(packetid.ChatServerbound, pk.String(str)))
 }
