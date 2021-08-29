@@ -1,17 +1,24 @@
-# account 是你的登陆账号在offline时不用填写  
-# login 是你的登陆模式，可以在 microsoft，mojang，offline中选择
+# login 是你的登陆模式，可以在 microsoft，mojang，offline中选择 (!)暂未支持微软登录 选了也是白选 
+# account 是你的登陆账号，登录模式为offline时不用填写
+# passwd 是你的登陆密码,登录模式为offline时不用填写
+# 所以我选择等原仓库更新(bushi
 # name 在离线登陆（offline）时必填,在其他登陆模式时会被忽略
-# passwd 是你的登陆密码在offline时不用填写  
 [profile]
-  account = "example@example.com"
-  login = "mojang"
-  name = "yourid"
-  passwd = "password"
+  login = ""
+  passwd = ""
+  account = ""
+  name = ""
 
 # ip 请填写你的服务器ip
 # port 一般情况都是25565，少数服务器会使用其他端口
 # timeout 是钓鱼等待时间，超过这个时间即使没有钓到鱼也会收杆，一般而言tps20的服务器timeout应该设置为45
+# RetryTime 是掉线重进时间
+# FristThrowTime 是刚进入服务器后多少秒抛竿
+# throwmcd 是手动抛竿的指令 不用带斜杠
 [setting]
-  ip = "minecraftserver.com"
+  ip = ""
   port = 25565
   timeout = 45
+  RetryTime = 1
+  FristThrowTime = 3
+  throwcmd = "throw"
