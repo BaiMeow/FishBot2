@@ -21,16 +21,16 @@ an older version see also:<https://github.com/MscBaiMeow/FishBot>
 # name 在离线登陆（offline）时必填,在其他登陆模式时会被忽略
 # passwd 是你的登陆密码在offline时不用填写  
 [profile]
-  account = "3489037396@qq.com"
+  account = "example@example.com"
   login = "mojang"
   name = "yourid"
-  passwd = "MscBaiMeow.."
+  passwd = "password"
 
 # ip 请填写你的服务器ip
 # port 一般情况都是25565，少数服务器会使用其他端口
 # timeout 是钓鱼等待时间，超过这个时间即使没有钓到鱼也会收杆，一般而言tps20的服务器timeout应该设置为45
 [setting]
-  ip = "play.miaoscraft.cn"
+  ip = "minecraftserver.com"
   port = 25565
   timeout = 45
 
