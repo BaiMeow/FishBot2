@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	_ "embed"
+	"github.com/BaiMeow/msauth"
 	"io/ioutil"
 	"log"
 	"os"
@@ -73,7 +74,15 @@ func main() {
 		c.Auth.UUID, c.Auth.Name = resp.SelectedProfile()
 		c.Auth.AsTk = resp.AccessToken()
 	case "microsoft":
-		log.Fatal("暂不支持微软登陆")
+		msauth.SetClient("67e646fb-20f3-4595-9830-56773a07637d", "")
+		profile, astk, err := msauth.Login()
+		log.Println("验证成功")
+		if err != nil {
+			log.Fatal(err)
+		}
+		c.Auth.UUID = profile.Id
+		c.Auth.Name = profile.Name
+		c.Auth.AsTk = astk
 	default:
 		log.Fatal("无效的登陆模式")
 	}
