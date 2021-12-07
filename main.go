@@ -6,6 +6,7 @@ import (
 	"github.com/BaiMeow/msauth"
 	"io/ioutil"
 	"log"
+	"net"
 	"os"
 	"strconv"
 	"time"
@@ -93,8 +94,7 @@ func main() {
 		Disconnect: onDisconnect,
 	}.Attach(c)
 	c.Events.AddListener(updatebobber, newentity)
-
-	addr := vp.GetString("setting.ip") + ":" + strconv.Itoa(vp.GetInt("setting.port"))
+	addr := net.JoinHostPort(vp.GetString("setting.ip"), strconv.Itoa(vp.GetInt("setting.port")))
 	for {
 		if err := c.JoinServer(addr); err != nil {
 			log.Fatal(err)

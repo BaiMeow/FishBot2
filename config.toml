@@ -1,4 +1,4 @@
-# account 是你的登陆账号在offline时不用填写  
+# account 是你的登陆账号在offline时不用填写
 # login 是你的登陆模式，可以在 microsoft，mojang，offline中选择
 # 使用微软登陆时，这里只需填写login字段，其他可以忽略或删除
 # name 在离线登陆（offline）时必填,在其他登陆模式时会被忽略
