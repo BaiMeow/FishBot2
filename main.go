@@ -32,16 +32,16 @@ var (
 	vp       *viper.Viper
 )
 
-var updatebobber = bot.PacketHandler{
-	ID:       packetid.EntityMetadata,
+var updateBobber = bot.PacketHandler{
+	ID:       packetid.ClientboundSetEntityData,
 	Priority: 1,
-	F:        checkbobber,
+	F:        checkBobber,
 }
 
-var newentity = bot.PacketHandler{
-	ID:       packetid.SpawnEntity,
+var newEntity = bot.PacketHandler{
+	ID:       packetid.ClientboundAddEntity,
 	Priority: 1,
-	F:        newbobber,
+	F:        newBobber,
 }
 
 //go:embed config.toml
@@ -49,6 +49,8 @@ var defaultConfig []byte
 
 func main() {
 	log.SetOutput(colorable.NewColorableStdout())
+	log.Println("自动钓鱼机器人")
+	log.Println("版本号：mc1.18")
 	vp = viper.New()
 	vp.SetConfigName("config")
 	vp.SetConfigType("toml")
@@ -93,7 +95,7 @@ func main() {
 		ChatMsg:    onChatMsg,
 		Disconnect: onDisconnect,
 	}.Attach(c)
-	c.Events.AddListener(updatebobber, newentity)
+	c.Events.AddListener(updateBobber, newEntity)
 	addr := net.JoinHostPort(vp.GetString("setting.ip"), strconv.Itoa(vp.GetInt("setting.port")))
 	for {
 		if err := c.JoinServer(addr); err != nil {
@@ -122,7 +124,7 @@ func onDisconnect(c chat.Message) error {
 	return nil
 }
 
-func checkbobber(p pk.Packet) error {
+func checkBobber(p pk.Packet) error {
 	var EID pk.VarInt
 	p.Scan(&EID)
 	if int32(EID) != bobberID {
@@ -140,7 +142,7 @@ func checkbobber(p pk.Packet) error {
 	}
 	return nil
 }
-func newbobber(p pk.Packet) error {
+func newBobber(p pk.Packet) error {
 	var (
 		EID        pk.VarInt
 		UUID       pk.UUID
@@ -186,7 +188,7 @@ func watchdog() {
 	}
 }
 
-func onChatMsg(msg chat.Message, pos byte, sender uuid.UUID) error {
+func onChatMsg(msg chat.Message, _ byte, _ uuid.UUID) error {
 	log.Println(msg.ClearString())
 	return nil
 }
@@ -203,12 +205,12 @@ func listenMsg() {
 }
 
 func useItem() error {
-	return c.Conn.WritePacket(pk.Packet{ID: packetid.UseItem, Data: []byte{0}})
+	return c.Conn.WritePacket(pk.Packet{ID: packetid.ServerboundUseItem, Data: []byte{0}})
 }
 
 func sendMsg(str string) error {
 	if str == "/throw" {
 		return useItem()
 	}
-	return c.Conn.WritePacket(pk.Marshal(packetid.ChatServerbound, pk.String(str)))
+	return c.Conn.WritePacket(pk.Marshal(packetid.ServerboundChat, pk.String(str)))
 }
