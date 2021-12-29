@@ -44,7 +44,7 @@ var newEntity = bot.PacketHandler{
 	F:        newBobber,
 }
 
-//go:embed config.toml
+//go:embed defaultConfig.toml
 var defaultConfig []byte
 
 func main() {
