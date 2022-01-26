@@ -41,8 +41,8 @@ github.com/BaiMeow/msauth v0.0.0-20211225042319-2589fe15df92 h1:Cot6Q/ani/FfqOHG
 github.com/BaiMeow/msauth v0.0.0-20211225042319-2589fe15df92/go.mod h1:8aaR4Tp6OvyLjGc8zn5tcWZ3bS52LkDYgDmYEQMw2MY=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/Tnze/go-mc v1.17.2-0.20211227070705-e507d82b83f4 h1:mWChfZzJDtTZFauHCJJXuqc1PU4rEJYS35FW0GNJo6s=
-github.com/Tnze/go-mc v1.17.2-0.20211227070705-e507d82b83f4/go.mod h1:t0AI38F1BEmmy8/uLhr9RCOUeDbBj3oUNQH9akjzMc0=
+github.com/Tnze/go-mc v1.17.2-0.20220122135609-fee2e0c939a3 h1:S0xt+Tzo6uNJytcooZvBgBP9qy/EHlJiOdwI6Dag/+M=
+github.com/Tnze/go-mc v1.17.2-0.20220122135609-fee2e0c939a3/go.mod h1:t0AI38F1BEmmy8/uLhr9RCOUeDbBj3oUNQH9akjzMc0=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/armon/circbuf v0.0.0-20150827004946-bbbad097214e/go.mod h1:3U/XgcO3hCbHZ8TKRvWD2dDTCfh9M9ya+I9JpbB7O8o=
 github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da/go.mod h1:Q73ZrmVTwzkszR9V5SSuryQ31EELlFMUz1kKyl939pY=
