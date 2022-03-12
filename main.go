@@ -50,7 +50,7 @@ var defaultConfig []byte
 func main() {
 	log.SetOutput(colorable.NewColorableStdout())
 	log.Println("自动钓鱼机器人")
-	log.Println("版本号：mc1.18")
+	log.Println("版本号：mc1.18.2")
 	vp = viper.New()
 	vp.SetConfigName("config")
 	vp.SetConfigType("toml")

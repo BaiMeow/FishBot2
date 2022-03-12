@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/BaiMeow/msauth v0.0.0-20211225042319-2589fe15df92
-	github.com/Tnze/go-mc v1.17.2-0.20220122135609-fee2e0c939a3
+	github.com/Tnze/go-mc v1.18.2-0.20220311063747-d8695636b65c
 	github.com/google/uuid v1.3.0
 	github.com/iancoleman/strcase v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.8
